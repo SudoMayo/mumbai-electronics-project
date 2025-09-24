@@ -1,0 +1,1730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mumbai Electronics - Diwali Strategy Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #7c3aed;
+            --secondary-light: #8b5cf6;
+            --accent-color: #06b6d4;
+            --accent-warm: #f59e0b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-700);
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            border: 1px solid var(--gray-200);
+        }
+
+        .header-title {
+            color: var(--gray-900);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-subtitle {
+            color: var(--gray-600);
+            font-size: 1.125rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            background: var(--success-color);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            gap: 0.5rem;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--white);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .metric-label {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            color: var(--gray-900);
+            font-weight: 700;
+            font-size: 2rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .card-title {
+            color: var(--gray-900);
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-container {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--gray-800);
+            text-align: center;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .insight-box h3 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation {
+            background: var(--gray-50);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .recommendation h3 {
+            color: var(--gray-900);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-600);
+        }
+
+        .tab:hover {
+            background: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tab-content li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tab-content li:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--white);
+        }
+
+        .status-complete {
+            background: var(--success-color);
+        }
+
+        .status-progress {
+            background: var(--accent-warm);
+        }
+
+        .status-analysis {
+            background: var(--accent-color);
+        }
+
+        .cta-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow);
+            margin-top: 2rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin: 0.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            background: var(--white);
+            border-radius: 16px;
+            margin: 1rem 0;
+            border: 1px solid var(--gray-200);
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .heatmap-container {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .heatmap-cell {
+            background: var(--white);
+            padding: 1rem;
+            text-align: center;
+            border-radius: 6px;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid var(--gray-200);
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .heatmap-value {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .heatmap-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+            
+            .header-title {
+                font-size: 2rem;
+            }
+            
+            .dashboard-grid,
+            .stats-grid,
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        canvas {
+            max-height: 400px !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chart-interactive {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .chart-interactive:hover {
+            transform: scale(1.02);
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--white);
+            color: var(--gray-800);
+            border: 1px solid var(--gray-200);
+            border-radius: 9999px;
+            padding: 0.5rem 0.75rem;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Sidebar / nav */
+        .nav-toggle {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            background: var(--white);
+            color: var(--gray-800);
+            border: 1px solid var(--gray-200);
+            border-radius: 9999px;
+            padding: 0.5rem 0.6rem;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(1px);
+            display: none;
+            z-index: 999;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background: var(--white);
+            border-right: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-lg);
+            transform: translateX(-100%);
+            transition: transform 0.25s ease-in-out;
+            z-index: 1001;
+            padding: 1rem;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar h3 { color: var(--gray-900); margin: 0.5rem 0 1rem; }
+        .sidebar a {
+            display: block;
+            padding: 0.6rem 0.5rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            border-radius: 8px;
+        }
+        .sidebar a:hover { background: var(--gray-100); color: var(--gray-900); }
+
+        /* Dark theme overrides */
+        [data-theme="dark"] body {
+            color: #e5e7eb;
+            background: linear-gradient(135deg, #0b1220 0%, #0f172a 100%);
+        }
+        [data-theme="dark"] header,
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .cta-section,
+        [data-theme="dark"] .loading,
+        [data-theme="dark"] .heatmap-cell {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-color: #1f2937;
+        }
+        [data-theme="dark"] .header-title { color: #e5e7eb; }
+        [data-theme="dark"] .header-subtitle { color: #94a3b8; }
+        [data-theme="dark"] .metric-label { color: #94a3b8; }
+        [data-theme="dark"] .metric-value { color: #e5e7eb; }
+        [data-theme="dark"] .card-title { color: #e5e7eb; }
+        [data-theme="dark"] .recommendation { background: #0b1220; border-left-color: var(--primary-color); }
+        [data-theme="dark"] .recommendation h3 { color: #f8fafc; }
+        [data-theme="dark"] .recommendation p,
+        [data-theme="dark"] .recommendation li { color: #cbd5e1; }
+        [data-theme="dark"] .chart-title { color: #e5e7eb; }
+        [data-theme="dark"] .heatmap-grid { background: #0b1220; }
+        [data-theme="dark"] .theme-toggle { background: #0f172a; color: #e5e7eb; border-color: #1f2937; }
+        [data-theme="dark"] .tabs { background: #0b1220; border-color: #1f2937; }
+        [data-theme="dark"] .tab { color: #cbd5e1; }
+        [data-theme="dark"] .tab:hover { background: #111827; color: #e5e7eb; }
+        [data-theme="dark"] .tab.active { background: var(--primary-color); color: #ffffff; }
+        [data-theme="dark"] .tab-content h3 { color: #e5e7eb !important; }
+        [data-theme="dark"] .cta-section h2 { color: #e5e7eb !important; }
+        [data-theme="dark"] .cta-section p { color: #cbd5e1 !important; }
+        [data-theme="dark"] .loading { color: #cbd5e1; }
+        [data-theme="dark"] .heatmap-label { color: #cbd5e1; }
+        [data-theme="dark"] .nav-toggle { background: #0f172a; color: #e5e7eb; border-color: #1f2937; }
+        [data-theme="dark"] .sidebar { background: #0f172a; border-right-color: #1f2937; }
+        [data-theme="dark"] .sidebar h3 { color: #e5e7eb; }
+        [data-theme="dark"] .sidebar a { color: #cbd5e1; }
+        [data-theme="dark"] .sidebar a:hover { background: #111827; color: #e5e7eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="navToggle" class="nav-toggle" aria-label="Open navigation" title="Open navigation">☰</button>
+        <header class="fade-in">
+            <h1 class="header-title">Mumbai Electronics</h1>
+            <p class="header-subtitle">Diwali Season Strategy Dashboard 2024</p>
+            <span class="status-badge">Real-Time Data Analysis by Anshul Yadav</span>
+        </header>
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+
+        <div id="loadingMessage" class="loading">
+            Loading and analyzing sales data...
+        </div>
+
+        <div id="dashboardContent" style="display: none;" class="fade-in">
+            <!-- Key Performance Metrics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="metric-label">Total Quarter Sales</div>
+                    <div class="metric-value" id="totalSales">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="metric-label">Units Sold</div>
+                    <div class="metric-value" id="totalUnits">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="metric-label">Total Profit</div>
+                    <div class="metric-value" id="totalProfit">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="metric-label">Profit Margin</div>
+                    <div class="metric-value" id="avgProfitMargin">-</div>
+                </div>
+            </div>
+
+            <!-- Main Visualizations Section -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Interactive Data Visualizations</h2>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Weekly Sales Trend by Store Location</div>
+                        <canvas id="weeklyTrendChart" class="chart-interactive"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Sales Performance by Store Location</div>
+                        <canvas id="storePerformanceChart" class="chart-interactive"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Product Category Distribution</div>
+                        <canvas id="categoryChart" class="chart-interactive"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Daily Sales Patterns</div>
+                        <canvas id="dailyTrendsChart" class="chart-interactive"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">Profit Margin by Category</div>
+                        <canvas id="marginByCategoryChart" class="chart-interactive"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">Monthly Sales by Category (Stacked)</div>
+                        <canvas id="monthlySalesByCategoryChart" class="chart-interactive"></canvas>
+                    </div>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <div class="chart-title">Cumulative Sales Over Time</div>
+                    <canvas id="cumulativeSalesChart" class="chart-interactive"></canvas>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <div class="chart-title">Day of Week Performance Analysis</div>
+                    <canvas id="dayOfWeekChart" class="chart-interactive"></canvas>
+                </div>
+            </div>
+
+            <!-- Product Category Heatmap -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Store-Category Performance Matrix</h2>
+                </div>
+                <div id="categoryHeatmap" class="heatmap-container">
+                    <div class="heatmap-grid" id="heatmapGrid">
+                        <!-- Heatmap cells will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Significant Patterns -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Significant Patterns Observed</h2>
+                </div>
+                <div class="recommendation">
+                    <ul>
+                        <li id="pattern1">Loading pattern...</li>
+                        <li id="pattern2">Loading pattern...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Key Insights Section -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Key Insights</h2>
+                </div>
+                <div class="insights-grid">
+                    <div class="insight-box">
+                        <h3>Store Performance Analysis</h3>
+                        <p id="insight1">Based on data analysis, Bandra store shows highest performance with consistent sales patterns.</p>
+                    </div>
+                    <div class="insight-box">
+                        <h3>Category Opportunities</h3>
+                        <p id="insight2">Smartphones and Smartwatches show strong profit margins during festival season.</p>
+                    </div>
+                    <div class="insight-box">
+                        <h3>Temporal Patterns</h3>
+                        <p id="insight3">Weekend sales significantly outperform weekdays, especially Saturdays.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategic Recommendations -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Strategic Recommendations</h2>
+                </div>
+                <div class="recommendation">
+                    <h3>1. Inventory Optimization Strategy</h3>
+                    <p id="recommendation1">Loading recommendation...</p>
+                </div>
+                <div class="recommendation">
+                    <h3>2. Targeted Marketing Campaign</h3>
+                    <p id="recommendation2">Loading recommendation...</p>
+                </div>
+                <div class="recommendation">
+                    <h3>3. Quick Win Implementation</h3>
+                    <p><strong>Immediate Action:</strong> Transfer slow-moving inventory from top stores to underperformers</p>
+                    <p><strong>This Week:</strong> Launch targeted campaign highlighting Diwali preparations</p>
+                    <p><strong>Next Week:</strong> Set up bundle deals and test pricing strategies</p>
+                </div>
+            </div>
+
+
+            <!-- Implementation Roadmap -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Diwali Implementation Roadmap</h2>
+                </div>
+                <div class="tabs">
+                    <button class="tab active" onclick="showPhase('phase1', event)">Pre-Diwali</button>
+                    <button class="tab" onclick="showPhase('phase2', event)">Diwali Week</button>
+                    <button class="tab" onclick="showPhase('phase3', event)">Post-Diwali</button>
+                </div>
+                
+                <div id="phase1" class="tab-content active">
+                    <h3 style="margin-bottom: 1rem; color: var(--gray-800);">Phase 1: Preparation (2 weeks before)</h3>
+                    <ul>
+                        <li><div class="status-icon status-complete">✓</div>Complete inventory redistribution based on store performance data</li>
+                        <li><div class="status-icon status-complete">✓</div>Launch teaser campaigns on social media platforms</li>
+                        <li><div class="status-icon status-complete">✓</div>Train staff on new sales strategies and product bundles</li>
+                        <li><div class="status-icon status-complete">✓</div>Set up promotional materials and in-store displays</li>
+                        <li><div class="status-icon status-complete">✓</div>Implement dynamic pricing based on demand patterns</li>
+                    </ul>
+                </div>
+                
+                <div id="phase2" class="tab-content">
+                    <h3 style="margin-bottom: 1rem; color: var(--gray-800);">Phase 2: Execution (Diwali Week)</h3>
+                    <ul>
+                        <li><div class="status-icon status-progress">→</div>Execute flash sales on identified slow days</li>
+                        <li><div class="status-icon status-progress">→</div>Launch premium products during peak traffic hours</li>
+                        <li><div class="status-icon status-progress">→</div>Monitor real-time performance metrics dashboard</li>
+                        <li><div class="status-icon status-progress">→</div>Adjust strategies based on daily insights</li>
+                        <li><div class="status-icon status-progress">→</div>Coordinate with supply chain for rapid restocking</li>
+                    </ul>
+                </div>
+                
+                <div id="phase3" class="tab-content">
+                    <h3 style="margin-bottom: 1rem; color: var(--gray-800);">Phase 3: Analysis (Post-Diwali)</h3>
+                    <ul>
+                        <li><div class="status-icon status-analysis">📊</div>Capture comprehensive performance data</li>
+                        <li><div class="status-icon status-analysis">📊</div>Analyze campaign effectiveness vs projections</li>
+                        <li><div class="status-icon status-analysis">📊</div>Document learnings and best practices</li>
+                        <li><div class="status-icon status-analysis">📊</div>Plan for next seasonal event optimization</li>
+                        <li><div class="status-icon status-analysis">📊</div>Calculate ROI on marketing initiatives</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Conclusion -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <h2 class="card-title">Conclusion</h2>
+                </div>
+                <div class="recommendation">
+                    <p id="conclusionText">Loading conclusion...</p>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="cta-section">
+                <h2 style="margin-bottom: 1rem; color: var(--gray-900);">Ready to Maximize Diwali Sales?</h2>
+                <p style="margin-bottom: 2rem; color: var(--gray-600);">Transform these data-driven insights into record-breaking festival season performance</p>
+                <button class="cta-button" onclick="downloadReport()">Download Full Report</button>
+                <button class="cta-button" onclick="scheduleDemo()">Schedule Strategy Meeting</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Embedded CSV fallback for offline/file:// usage and GitHub Pages safety -->
+    <script id="embeddedCsv" type="text/plain" style="display:none">Date,DayOfWeek,StoreID,StoreLocation,ProductCategory,UnitsSold,TotalSales_INR,Profit_INR
+7/1/2023,Saturday,1,Bandra,Smartphones,8,640000,96000
+7/1/2023,Saturday,1,Bandra,Accessories,25,50000,20000
+7/1/2023,Saturday,1,Bandra,Audio,15,225000,67500
+7/2/2023,Sunday,2,Andheri,Laptops,10,800000,80000
+7/2/2023,Sunday,2,Andheri,Smartphones,12,960000,144000
+7/3/2023,Monday,3,Colaba,Laptops,12,960000,96000
+7/3/2023,Monday,3,Colaba,Accessories,30,60000,24000
+7/4/2023,Tuesday,1,Bandra,Audio,20,300000,90000
+7/5/2023,Wednesday,2,Andheri,Smartphones,15,1200000,180000
+7/5/2023,Wednesday,2,Andheri,Accessories,40,80000,32000
+7/6/2023,Thursday,3,Colaba,Audio,5,75000,22500
+7/7/2023,Friday,1,Bandra,Smartphones,7,560000,84000
+7/8/2023,Saturday,2,Andheri,Laptops,8,640000,64000
+7/8/2023,Saturday,2,Andheri,Audio,10,150000,45000
+7/9/2023,Sunday,3,Colaba,Accessories,22,44000,17600
+7/10/2023,Monday,1,Bandra,Laptops,5,400000,40000
+7/11/2023,Tuesday,2,Andheri,Smartphones,18,1440000,216000
+7/12/2023,Wednesday,3,Colaba,Laptops,15,1200000,120000
+7/13/2023,Thursday,1,Bandra,Accessories,35,70000,28000
+7/14/2023,Friday,1,Bandra,Audio,25,375000,112500
+7/15/2023,Saturday,2,Andheri,Audio,12,180000,54000
+7/16/2023,Sunday,3,Colaba,Smartphones,9,720000,108000
+7/17/2023,Monday,1,Bandra,Smartphones,10,800000,120000
+7/18/2023,Tuesday,2,Andheri,Laptops,11,880000,88000
+7/19/2023,Wednesday,3,Colaba,Accessories,28,56000,22400
+7/20/2023,Thursday,1,Bandra,Laptops,4,320000,32000
+7/21/2023,Friday,1,Bandra,Audio,18,270000,81000
+7/22/2023,Saturday,2,Andheri,Smartphones,20,1600000,240000
+7/23/2023,Sunday,3,Colaba,Audio,7,105000,31500
+7/24/2023,Monday,1,Bandra,Accessories,30,60000,24000
+7/25/2023,Tuesday,2,Andheri,Accessories,50,100000,40000
+7/26/2023,Wednesday,3,Colaba,Laptops,14,1120000,112000
+7/27/2023,Thursday,1,Bandra,Smartphones,9,720000,108000
+7/28/2023,Friday,2,Andheri,Audio,15,225000,67500
+7/29/2023,Saturday,3,Colaba,Smartphones,11,880000,132000
+7/30/2023,Sunday,1,Bandra,Audio,22,330000,99000
+8/1/2023,Tuesday,2,Andheri,Smartphones,22,1760000,264000
+8/2/2023,Wednesday,3,Colaba,Accessories,35,70000,28000
+8/3/2023,Thursday,1,Bandra,Laptops,6,480000,48000
+8/4/2023,Friday,2,Andheri,Laptops,12,960000,96000
+8/5/2023,Saturday,3,Colaba,Audio,8,120000,36000
+8/6/2023,Sunday,1,Bandra,Accessories,40,80000,32000
+8/7/2023,Monday,1,Bandra,Audio,28,420000,126000
+8/8/2023,Tuesday,2,Andheri,Smartphones,14,1120000,168000
+8/9/2023,Wednesday,3,Colaba,Laptops,18,1440000,144000
+8/10/2023,Thursday,1,Bandra,Smartphones,11,880000,132000
+8/11/2023,Friday,2,Andheri,Accessories,45,90000,36000
+8/12/2023,Saturday,3,Colaba,Smartphones,13,1040000,156000
+8/13/2023,Sunday,1,Bandra,Audio,30,450000,135000
+8/14/2023,Monday,2,Andheri,Audio,18,270000,81000
+8/15/2023,Tuesday,3,Colaba,Accessories,40,80000,32000
+8/16/2023,Wednesday,1,Bandra,Laptops,7,560000,56000
+8/17/2023,Thursday,2,Andheri,Laptops,14,1120000,112000
+8/18/2023,Friday,3,Colaba,Laptops,16,1280000,128000
+8/19/2023,Saturday,1,Bandra,Accessories,50,100000,40000
+8/20/2023,Sunday,1,Bandra,Smartphones,12,960000,144000
+8/21/2023,Monday,2,Andheri,Smartphones,25,2000000,300000
+8/22/2023,Tuesday,3,Colaba,Audio,10,150000,45000
+8/23/2023,Wednesday,1,Bandra,Audio,32,480000,144000
+8/24/2023,Thursday,2,Andheri,Accessories,60,120000,48000
+8/25/2023,Friday,3,Colaba,Smartphones,15,1200000,180000
+8/26/2023,Saturday,1,Bandra,Accessories,45,90000,36000
+8/27/2023,Sunday,2,Andheri,Audio,20,300000,90000
+8/28/2023,Monday,3,Colaba,Laptops,20,1600000,160000
+8/29/2023,Tuesday,1,Bandra,Smartphones,14,1120000,168000
+8/30/2023,Wednesday,2,Andheri,Smartphones,28,2240000,336000
+9/1/2023,Friday,3,Colaba,Accessories,50,100000,40000
+9/2/2023,Saturday,1,Bandra,Laptops,8,640000,64000
+9/3/2023,Sunday,2,Andheri,Laptops,15,1200000,120000
+9/4/2023,Monday,3,Colaba,Audio,12,180000,54000
+9/5/2023,Tuesday,1,Bandra,Audio,35,525000,157500
+9/6/2023,Wednesday,2,Andheri,Smartphones,16,1280000,192000
+9/7/2023,Thursday,3,Colaba,Laptops,22,1760000,176000
+9/8/2023,Friday,1,Bandra,Accessories,55,110000,44000
+9/9/2023,Saturday,2,Andheri,Accessories,70,140000,56000
+9/10/2023,Sunday,3,Colaba,Smartphones,18,1440000,216000
+9/11/2023,Monday,1,Bandra,Smartphones,16,1280000,192000
+9/12/2023,Tuesday,2,Andheri,Audio,22,330000,99000
+9/13/2023,Wednesday,3,Colaba,Laptops,18,1440000,144000
+9/14/2023,Thursday,1,Bandra,Audio,40,600000,180000
+9/15/2023,Friday,2,Andheri,Smartphones,30,2400000,360000
+9/16/2023,Saturday,3,Colaba,Accessories,60,120000,48000
+9/17/2023,Sunday,1,Bandra,Laptops,10,800000,80000
+9/18/2023,Monday,2,Andheri,Smartphones,19,1520000,228000
+9/19/2023,Tuesday,3,Colaba,Laptops,25,2000000,200000
+9/20/2023,Wednesday,1,Bandra,Accessories,65,130000,52000
+9/21/2023,Thursday,2,Andheri,Laptops,18,1440000,144000
+9/22/2023,Friday,3,Colaba,Smartphones,20,1600000,240000
+9/23/2023,Saturday,1,Bandra,Audio,45,675000,202500
+9/24/2023,Sunday,2,Andheri,Audio,25,375000,112500
+9/25/2023,Monday,3,Colaba,Accessories,55,110000,44000
+9/26/2023,Tuesday,1,Bandra,Smartphones,18,1440000,216000
+9/27/2023,Wednesday,2,Andheri,Accessories,80,160000,64000
+9/28/2023,Thursday,3,Colaba,Laptops,28,2240000,224000
+9/29/2023,Friday,1,Bandra,Laptops,12,960000,96000
+9/30/2023,Saturday,2,Andheri,Smartphones,35,2800000,420000</script>
+
+    <script>
+        let salesData = [];
+        let globalStoreData = {};
+        let globalCategoryData = {};
+        let weeklyData = {};
+        let dayOfWeekData = {};
+        
+        // Enhanced color palette
+        const colorPalette = {
+            primary: '#2563eb',
+            secondary: '#7c3aed',
+            accent: '#06b6d4',
+            warm: '#f59e0b',
+            success: '#10b981',
+            warning: '#f59e0b',
+            danger: '#ef4444',
+            gradients: [
+                'rgba(37, 99, 235, 0.8)',
+                'rgba(124, 58, 237, 0.8)',
+                'rgba(6, 182, 212, 0.8)',
+                'rgba(245, 158, 11, 0.8)',
+                'rgba(16, 185, 129, 0.8)'
+            ],
+            borders: [
+                '#2563eb',
+                '#7c3aed',
+                '#06b6d4',
+                '#f59e0b',
+                '#10b981'
+            ]
+        };
+        
+        // Load and parse CSV data (browser-friendly)
+        function loadData() {
+            try {
+                Papa.parse('mumbaielectronics.csv', {
+                    download: true,
+                    header: true,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        console.log('CSV data loaded successfully:', results.data.length, 'records');
+                        let rows = results.data.filter(row => row.Date && row.StoreLocation && row.ProductCategory);
+                        if (!rows || rows.length === 0) {
+                            // Fallback to embedded CSV
+                            const embedded = document.getElementById('embeddedCsv').textContent.trim();
+                            const parsed = Papa.parse(embedded, { header: true, dynamicTyping: true, skipEmptyLines: true });
+                            rows = parsed.data;
+                        }
+                        salesData = rows;
+                        // Normalize dates and day names
+                        salesData = salesData.map(row => {
+                            const parsedDate = new Date(row.Date);
+                            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                            return {
+                                ...row,
+                                DateObj: parsedDate,
+                                DayOfWeek: row.DayOfWeek && typeof row.DayOfWeek === 'string' ? row.DayOfWeek : dayNames[parsedDate.getDay()]
+                            };
+                        });
+                        processData();
+                        createVisualizations();
+                        generateInsights();
+                        generatePatternsRecommendationsConclusion();
+                        showDashboard();
+                    },
+                    error: function(error) {
+                        console.warn('Network CSV failed, using embedded CSV fallback:', error);
+                        const embedded = document.getElementById('embeddedCsv').textContent.trim();
+                        const parsed = Papa.parse(embedded, { header: true, dynamicTyping: true, skipEmptyLines: true });
+                        salesData = parsed.data;
+                        salesData = salesData.map(row => {
+                            const parsedDate = new Date(row.Date);
+                            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                            return { ...row, DateObj: parsedDate, DayOfWeek: row.DayOfWeek && typeof row.DayOfWeek === 'string' ? row.DayOfWeek : dayNames[parsedDate.getDay()] };
+                        });
+                        processData();
+                        createVisualizations();
+                        generateInsights();
+                        generatePatternsRecommendationsConclusion();
+                        showDashboard();
+                    }
+                });
+            } catch (error) {
+                console.warn('CSV load threw exception, using embedded fallback:', error);
+                const embedded = document.getElementById('embeddedCsv').textContent.trim();
+                const parsed = Papa.parse(embedded, { header: true, dynamicTyping: true, skipEmptyLines: true });
+                salesData = parsed.data.map(row => {
+                    const parsedDate = new Date(row.Date);
+                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                    return { ...row, DateObj: parsedDate, DayOfWeek: row.DayOfWeek && typeof row.DayOfWeek === 'string' ? row.DayOfWeek : dayNames[parsedDate.getDay()] };
+                });
+                processData();
+                createVisualizations();
+                generateInsights();
+                generatePatternsRecommendationsConclusion();
+                showDashboard();
+            }
+        }
+
+        function showError(message) {
+            const loadingEl = document.getElementById('loadingMessage');
+            loadingEl.textContent = message;
+            loadingEl.style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        }
+
+        function getISOWeek(date) {
+            const temp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = temp.getUTCDay() || 7;
+            temp.setUTCDate(temp.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(temp.getUTCFullYear(), 0, 1));
+            const weekNo = Math.ceil((((temp - yearStart) / 86400000) + 1) / 7);
+            return { year: temp.getUTCFullYear(), week: weekNo };
+        }
+
+        function processData() {
+            console.log('Processing data...');
+            
+            // Calculate summary statistics
+            const totalSales = salesData.reduce((sum, row) => sum + (row.TotalSales_INR || 0), 0);
+            const totalUnits = salesData.reduce((sum, row) => sum + (row.UnitsSold || 0), 0);
+            const totalProfit = salesData.reduce((sum, row) => sum + (row.Profit_INR || 0), 0);
+            const avgProfitMargin = totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(1) : 0;
+
+            // Update metrics display
+            document.getElementById('totalSales').textContent = formatCurrency(totalSales);
+            document.getElementById('totalUnits').textContent = totalUnits.toLocaleString();
+            document.getElementById('totalProfit').textContent = formatCurrency(totalProfit);
+            document.getElementById('avgProfitMargin').textContent = avgProfitMargin + '%';
+
+            // Process store data
+            globalStoreData = {};
+            salesData.forEach(row => {
+                if (!globalStoreData[row.StoreLocation]) {
+                    globalStoreData[row.StoreLocation] = { sales: 0, profit: 0, units: 0 };
+                }
+                globalStoreData[row.StoreLocation].sales += row.TotalSales_INR || 0;
+                globalStoreData[row.StoreLocation].profit += row.Profit_INR || 0;
+                globalStoreData[row.StoreLocation].units += row.UnitsSold || 0;
+            });
+
+            // Process category data
+            globalCategoryData = {};
+            salesData.forEach(row => {
+                if (!globalCategoryData[row.ProductCategory]) {
+                    globalCategoryData[row.ProductCategory] = { sales: 0, profit: 0, units: 0 };
+                }
+                globalCategoryData[row.ProductCategory].sales += row.TotalSales_INR || 0;
+                globalCategoryData[row.ProductCategory].profit += row.Profit_INR || 0;
+                globalCategoryData[row.ProductCategory].units += row.UnitsSold || 0;
+            });
+
+            // Process weekly data per store
+            weeklyData = {};
+            salesData.forEach(row => {
+                const info = row.DateObj ? getISOWeek(row.DateObj) : getISOWeek(new Date(row.Date));
+                const key = `${info.year}-W${String(info.week).padStart(2, '0')}`;
+                if (!weeklyData[key]) weeklyData[key] = {};
+                if (!weeklyData[key][row.StoreLocation]) weeklyData[key][row.StoreLocation] = 0;
+                weeklyData[key][row.StoreLocation] += row.TotalSales_INR || 0;
+            });
+
+            // Process day of week data
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            dayOfWeekData = {};
+            dayOrder.forEach(day => {
+                dayOfWeekData[day] = {};
+                Object.keys(globalCategoryData).forEach(category => {
+                    dayOfWeekData[day][category] = 0;
+                });
+            });
+            
+            salesData.forEach(row => {
+                if (dayOfWeekData[row.DayOfWeek] && dayOfWeekData[row.DayOfWeek][row.ProductCategory] !== undefined) {
+                    dayOfWeekData[row.DayOfWeek][row.ProductCategory] += row.TotalSales_INR || 0;
+                }
+            });
+
+            console.log('Data processing complete');
+        }
+
+        function computeMonthlyAggregates() {
+            const monthlyKey = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            const monthlyByCategory = {}; // { YYYY-MM: { category: sales } }
+            const monthlyTotals = {}; // { YYYY-MM: { sales, profit } }
+            salesData.forEach(row => {
+                const date = row.DateObj ? row.DateObj : new Date(row.Date);
+                const key = monthlyKey(date);
+                if (!monthlyByCategory[key]) monthlyByCategory[key] = {};
+                if (!monthlyTotals[key]) monthlyTotals[key] = { sales: 0, profit: 0 };
+                monthlyByCategory[key][row.ProductCategory] = (monthlyByCategory[key][row.ProductCategory] || 0) + (row.TotalSales_INR || 0);
+                monthlyTotals[key].sales += row.TotalSales_INR || 0;
+                monthlyTotals[key].profit += row.Profit_INR || 0;
+            });
+            return { monthlyByCategory, monthlyTotals };
+        }
+
+        function formatCurrency(amount) {
+            if (amount > 10000000) {
+                return '₹' + (amount / 10000000).toFixed(1) + 'Cr';
+            } else if (amount > 100000) {
+                return '₹' + (amount / 100000).toFixed(1) + 'L';
+            } else {
+                return '₹' + (amount / 1000).toFixed(0) + 'K';
+            }
+        }
+
+        function createVisualizations() {
+            console.log('Creating visualizations...');
+            try {
+                const { monthlyByCategory, monthlyTotals } = computeMonthlyAggregates();
+                createStorePerformanceChart();
+                createCategoryChart();
+                createDailyTrendsChart();
+                createDayOfWeekChart();
+                createWeeklyTrendChart();
+                createCategoryHeatmap();
+                createMarginByCategoryChart();
+                createMonthlySalesByCategoryChart(monthlyByCategory);
+                createCumulativeSalesChart();
+                console.log('All visualizations created successfully');
+            } catch (error) {
+                console.error('Error creating visualizations:', error);
+            }
+        }
+
+        function createWeeklyTrendChart() {
+            const ctx = document.getElementById('weeklyTrendChart').getContext('2d');
+            const stores = Object.keys(globalStoreData);
+            const weekKeys = Object.keys(weeklyData).sort();
+            const datasets = stores.map((store, index) => ({
+                label: store,
+                data: weekKeys.map(weekKey => (weeklyData[weekKey][store] || 0) / 100000),
+                borderColor: colorPalette.borders[index % colorPalette.borders.length],
+                backgroundColor: colorPalette.gradients[index % colorPalette.gradients.length],
+                borderWidth: 3,
+                fill: false,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weekKeys,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ₹' + context.parsed.y.toFixed(1) + 'L';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sales (₹ Lakhs)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'ISO Week'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createStorePerformanceChart() {
+            const ctx = document.getElementById('storePerformanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(globalStoreData),
+                    datasets: [{
+                        label: 'Total Sales (₹ Lakhs)',
+                        data: Object.values(globalStoreData).map(d => d.sales / 100000),
+                        backgroundColor: colorPalette.gradients[0],
+                        borderColor: colorPalette.borders[0],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }, {
+                        label: 'Total Profit (₹ Lakhs)',
+                        data: Object.values(globalStoreData).map(d => d.profit / 100000),
+                        backgroundColor: colorPalette.gradients[1],
+                        borderColor: colorPalette.borders[1],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₹ Lakhs)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(globalCategoryData),
+                    datasets: [{
+                        data: Object.values(globalCategoryData).map(d => d.sales),
+                        backgroundColor: colorPalette.gradients,
+                        borderColor: colorPalette.borders,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = formatCurrency(context.raw);
+                                    const total = Object.values(globalCategoryData).reduce((a, b) => a + b.sales, 0);
+                                    const percentage = ((context.raw / total) * 100).toFixed(1) + '%';
+                                    return label + ': ' + value + ' (' + percentage + ')';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMarginByCategoryChart() {
+            const ctx = document.getElementById('marginByCategoryChart').getContext('2d');
+            const categories = Object.keys(globalCategoryData);
+            const margins = categories.map(cat => {
+                const d = globalCategoryData[cat];
+                return d.sales > 0 ? (d.profit / d.sales) * 100 : 0;
+            });
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Profit Margin %',
+                        data: margins.map(v => Number(v.toFixed(1))),
+                        backgroundColor: colorPalette.gradients,
+                        borderColor: colorPalette.borders,
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) { return context.parsed.y.toFixed(1) + '%'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Margin (%)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // removed scatter chart as requested
+
+        function createMonthlySalesByCategoryChart(monthlyByCategory) {
+            const ctx = document.getElementById('monthlySalesByCategoryChart').getContext('2d');
+            const monthKeys = Object.keys(monthlyByCategory).sort();
+            const categories = Object.keys(globalCategoryData);
+            const datasets = categories.map((cat, i) => ({
+                label: cat,
+                data: monthKeys.map(m => (monthlyByCategory[m][cat] || 0) / 100000),
+                backgroundColor: colorPalette.gradients[i % colorPalette.gradients.length],
+                borderColor: colorPalette.borders[i % colorPalette.borders.length],
+                borderWidth: 1,
+                borderRadius: 6
+            }));
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels: monthKeys, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Sales (₹ Lakhs)' }, stacked: true },
+                        x: { stacked: true }
+                    }
+                }
+            });
+        }
+
+        // removed monthly margin trend as requested
+
+        function createCumulativeSalesChart() {
+            const ctx = document.getElementById('cumulativeSalesChart').getContext('2d');
+            const map = new Map();
+            salesData.forEach(row => {
+                const d = row.DateObj ? row.DateObj : new Date(row.Date);
+                const key = d.toISOString().split('T')[0];
+                map.set(key, (map.get(key) || 0) + (row.TotalSales_INR || 0));
+            });
+            const dates = Array.from(map.keys()).sort();
+            const daily = dates.map(k => map.get(k));
+            const cumulative = [];
+            daily.reduce((acc, val, i) => cumulative[i] = acc + val, 0);
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Cumulative Sales (₹ Lakhs)',
+                        data: cumulative.map(v => v / 100000),
+                        borderColor: colorPalette.secondary,
+                        backgroundColor: colorPalette.gradients[1],
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // Growing line animation (progressive point reveal)
+                    animation: {
+                        x: {
+                            type: 'number',
+                            easing: 'linear',
+                            duration: 0,
+                            from: NaN,
+                            delay: (ctx) => (ctx.type === 'data' && ctx.mode === 'default') ? ctx.dataIndex * 35 : 0
+                        },
+                        y: {
+                            type: 'number',
+                            easing: 'easeOutQuart',
+                            duration: 900,
+                            from: NaN,
+                            delay: (ctx) => (ctx.type === 'data' && ctx.mode === 'default') ? ctx.dataIndex * 35 : 0
+                        }
+                    },
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Sales (₹ Lakhs)' } }
+                    }
+                }
+            });
+        }
+
+        function createDailyTrendsChart() {
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayData = {};
+            
+            dayOrder.forEach(day => {
+                dayData[day] = { sales: 0, profit: 0, count: 0 };
+            });
+            
+            salesData.forEach(row => {
+                if (dayData[row.DayOfWeek]) {
+                    dayData[row.DayOfWeek].sales += row.TotalSales_INR || 0;
+                    dayData[row.DayOfWeek].profit += row.Profit_INR || 0;
+                    dayData[row.DayOfWeek].count += 1;
+                }
+            });
+
+            const ctx = document.getElementById('dailyTrendsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dayOrder,
+                    datasets: [{
+                        label: 'Average Daily Sales (₹ Thousands)',
+                        data: dayOrder.map(day => dayData[day].count > 0 ? dayData[day].sales / dayData[day].count / 1000 : 0),
+                        borderColor: '#1f77b4',
+                        backgroundColor: 'rgba(31, 119, 180, 0.35)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Average Daily Profit (₹ Thousands)',
+                        data: dayOrder.map(day => dayData[day].count > 0 ? dayData[day].profit / dayData[day].count / 1000 : 0),
+                        borderColor: '#d62728',
+                        backgroundColor: 'rgba(214, 39, 40, 0.35)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Amount (₹ Thousands)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createDayOfWeekChart() {
+            const ctx = document.getElementById('dayOfWeekChart').getContext('2d');
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const categories = Object.keys(globalCategoryData);
+            
+            const datasets = categories.map((category, index) => ({
+                label: category,
+                data: dayOrder.map(day => dayOfWeekData[day][category] / 1000),
+                backgroundColor: colorPalette.gradients[index % colorPalette.gradients.length],
+                borderColor: colorPalette.borders[index % colorPalette.borders.length],
+                borderWidth: 2,
+                borderRadius: 6
+            }));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dayOrder,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeOutCubic',
+                        delay: (context) => context.dataIndex * 40
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ₹' + context.parsed.y.toFixed(0) + 'K';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Sales (₹ Thousands)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createCategoryHeatmap() {
+            const stores = Object.keys(globalStoreData);
+            const categories = Object.keys(globalCategoryData);
+            const heatmapGrid = document.getElementById('heatmapGrid');
+            
+            // Create heatmap data
+            const heatmapData = [];
+            categories.forEach(category => {
+                stores.forEach(store => {
+                    const sales = salesData.filter(row => 
+                        row.ProductCategory === category && row.StoreLocation === store
+                    ).reduce((sum, row) => sum + (row.TotalSales_INR || 0), 0);
+                    
+                    heatmapData.push({ category, store, sales });
+                });
+            });
+
+            const maxSales = Math.max(...heatmapData.map(d => d.sales));
+            
+            // Clear and set up grid
+            heatmapGrid.innerHTML = '';
+            heatmapGrid.style.gridTemplateColumns = `repeat(${stores.length}, 1fr)`;
+
+            // Create cells for each category-store combination
+            categories.forEach((category, categoryIndex) => {
+                stores.forEach((store, storeIndex) => {
+                    const data = heatmapData.find(d => d.category === category && d.store === store);
+                    const intensity = data ? data.sales / maxSales : 0;
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    
+                    // Color intensity based on sales
+                    const opacity = 0.3 + (intensity * 0.7);
+                    cell.style.background = `rgba(37, 99, 235, ${opacity})`;
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    const lowTextColor = isDark ? 'rgba(229, 231, 235, 0.92)' : 'var(--gray-700)';
+                    cell.style.color = intensity > 0.5 ? 'white' : lowTextColor;
+                    
+                    cell.innerHTML = `
+                        <div class="heatmap-value">${formatCurrency(data ? data.sales : 0)}</div>
+                        <div class="heatmap-label">${category}<br>${store}</div>
+                    `;
+                    
+                    cell.title = `${category} at ${store}: ${formatCurrency(data ? data.sales : 0)}`;
+                    heatmapGrid.appendChild(cell);
+                });
+            });
+        }
+
+        function generateInsights() {
+            // Find best performing store
+            const bestStore = Object.entries(globalStoreData)
+                .sort(([,a], [,b]) => b.sales - a.sales)[0][0];
+            
+            // Find best performing category
+            const bestCategory = Object.entries(globalCategoryData)
+                .sort(([,a], [,b]) => b.profit - a.profit)[0][0];
+            
+            // Update insights
+            document.getElementById('insight1').textContent = 
+                `${bestStore} store leads with the highest sales performance, showing strong customer engagement and effective local marketing.`;
+                
+            document.getElementById('insight2').textContent = 
+                `${bestCategory} delivers the strongest profit contribution and margin, making it the highest priority category for Diwali.`;
+                
+            // Calculate day performance
+            const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const dayTotals = {};
+            
+            dayOrder.forEach(day => {
+                dayTotals[day] = Object.values(dayOfWeekData[day]).reduce((a, b) => a + b, 0);
+            });
+            
+            const bestDay = Object.entries(dayTotals)
+                .sort(([,a], [,b]) => b - a)[0][0];
+            
+            document.getElementById('insight3').textContent = 
+                `${bestDay} shows peak sales performance, indicating optimal timing for premium product launches and promotional campaigns.`;
+        }
+
+        function generatePatternsRecommendationsConclusion() {
+            // Patterns
+            const totalSales = Object.values(globalStoreData).reduce((s, d) => s + d.sales, 0);
+            const categoryTop = Object.entries(globalCategoryData).sort(([,a], [,b]) => b.sales - a.sales)[0];
+            const dayTotals = {};
+            ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].forEach(day => {
+                dayTotals[day] = Object.values(dayOfWeekData[day]).reduce((a,b)=>a+b,0);
+            });
+            const bestDay = Object.entries(dayTotals).sort(([,a],[,b])=>b-a)[0];
+            const worstDay = Object.entries(dayTotals).sort(([,a],[,b])=>a-b)[0];
+
+            const categoryShare = totalSales > 0 ? ((categoryTop[1].sales / totalSales) * 100).toFixed(1) : '0.0';
+            document.getElementById('pattern1').textContent = `${categoryTop[0]} contributes ${categoryShare}% of quarter sales.`;
+            document.getElementById('pattern2').textContent = `Sales peak on ${bestDay[0]} and are lowest on ${worstDay[0]}.`;
+
+            // Recommendations
+            const bestMarginCategory = Object.entries(globalCategoryData)
+                .map(([k,v]) => ({ k, margin: v.sales>0 ? v.profit/v.sales : 0 }))
+                .sort((a,b)=>b.margin-a.margin)[0];
+            const underperformingStore = Object.entries(globalStoreData).sort(([,a],[,b])=>a.sales-b.sales)[0][0];
+            document.getElementById('recommendation1').textContent = `Prioritize ${bestMarginCategory.k} inventory and bundles; allocate +20% shelf space and ensure stock depth at top stores.`;
+            document.getElementById('recommendation2').textContent = `Run weekend campaigns centered on ${categoryTop[0]} with time-bound offers; execute localized promos to lift ${underperformingStore} store traffic.`;
+
+            // Conclusion
+            document.getElementById('conclusionText').textContent = `The last-quarter data shows clear store and category leaders with strong weekend demand. Executing focused inventory depth in high-margin categories and weekend-led promotions should maximize Diwali ROI while uplifting underperforming locations.`;
+        }
+
+        function showDashboard() {
+            document.getElementById('loadingMessage').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+        }
+
+        // Tab functionality
+        function showPhase(phaseId, event) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            event.target.classList.add('active');
+            document.getElementById(phaseId).classList.add('active');
+        }
+
+        // CTA functions
+        function downloadReport() {
+            try {
+                const totalSales = Object.values(globalStoreData).reduce((s,d)=>s+d.sales,0);
+                const totalProfit = Object.values(globalStoreData).reduce((s,d)=>s+d.profit,0);
+                const totalUnits = Object.values(globalStoreData).reduce((s,d)=>s+d.units,0);
+                const avgMargin = totalSales>0 ? (totalProfit/totalSales*100).toFixed(1) : '0.0';
+                const bestStore = Object.entries(globalStoreData).sort(([,a],[,b])=>b.sales-a.sales)[0][0];
+                const bestCategoryByProfit = Object.entries(globalCategoryData).sort(([,a],[,b])=>b.profit-a.profit)[0][0];
+                const patterns = [
+                    document.getElementById('pattern1').textContent,
+                    document.getElementById('pattern2').textContent
+                ];
+                const rec1 = document.getElementById('recommendation1').textContent;
+                const rec2 = document.getElementById('recommendation2').textContent;
+                const conclusion = document.getElementById('conclusionText').textContent;
+
+                const lines = [];
+                lines.push('# Mumbai Electronics - Diwali Strategy Report');
+                lines.push('');
+                lines.push('## Summary Metrics');
+                lines.push(`- Total Sales: ${formatCurrency(totalSales)}`);
+                lines.push(`- Total Profit: ${formatCurrency(totalProfit)}`);
+                lines.push(`- Units Sold: ${totalUnits.toLocaleString()}`);
+                lines.push(`- Average Profit Margin: ${avgMargin}%`);
+                lines.push('');
+                lines.push('## Top Performers');
+                lines.push(`- Best Store: ${bestStore}`);
+                lines.push(`- Best Category (by Profit): ${bestCategoryByProfit}`);
+                lines.push('');
+                lines.push('## Significant Patterns');
+                patterns.forEach((p,i)=>lines.push(`- ${p}`));
+                lines.push('');
+                lines.push('## Recommendations');
+                lines.push(`1. ${rec1}`);
+                lines.push(`2. ${rec2}`);
+                lines.push('');
+                lines.push('## Conclusion');
+                lines.push(conclusion);
+
+                const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'mumbai_electronics_diwali_report.md';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                console.error('Failed to generate report:', e);
+                alert('Failed to generate report. Please try again.');
+            }
+        }
+
+        function scheduleDemo() {
+            const subject = encodeURIComponent('Strategy Meeting: Diwali Sales Optimization');
+            const body = encodeURIComponent('Hi Team,\n\nPlease schedule a meeting to review the Diwali Strategy Dashboard and recommendations.\n\nThanks,');
+            window.location.href = `mailto:?subject=${subject}&body=${body}`;
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard initializing...');
+            loadData();
+            // Theme init
+            const root = document.documentElement;
+            const toggle = document.getElementById('themeToggle');
+            const saved = localStorage.getItem('me_theme');
+            if (saved) {
+                root.setAttribute('data-theme', saved);
+                toggle.textContent = saved === 'dark' ? '☀️' : '🌙';
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                root.setAttribute('data-theme', 'dark');
+                toggle.textContent = '☀️';
+            }
+            toggle.addEventListener('click', () => {
+                const current = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-theme', current);
+                localStorage.setItem('me_theme', current);
+                toggle.textContent = current === 'dark' ? '☀️' : '🌙';
+            });
+
+            // Sidebar init
+            const navToggle = document.getElementById('navToggle');
+            const overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            overlay.addEventListener('click', closeSidebar);
+            document.body.appendChild(overlay);
+
+            const sidebar = document.createElement('nav');
+            sidebar.className = 'sidebar';
+            sidebar.innerHTML = `
+                <h3>Navigate</h3>
+                <a href="#totalSales">Metrics</a>
+                <a href="#weeklyTrendChart">Weekly Trend</a>
+                <a href="#storePerformanceChart">Store Performance</a>
+                <a href="#categoryChart">Category Distribution</a>
+                <a href="#dailyTrendsChart">Daily Patterns</a>
+                <a href="#dayOfWeekChart">Day of Week</a>
+                <a href="#heatmapGrid">Performance Matrix</a>
+                <a href="#recommendation1">Recommendations</a>
+                <a href="#phase1">Roadmap</a>
+                <a href="#conclusionText">Conclusion</a>
+            `;
+            document.body.appendChild(sidebar);
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                overlay.style.display = 'block';
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.style.display = 'none';
+            }
+            navToggle.addEventListener('click', () => {
+                if (sidebar.classList.contains('open')) closeSidebar(); else openSidebar();
+            });
+            sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', closeSidebar));
+        });
+    </script>
+</body>
+</html>
